@@ -23,7 +23,7 @@ import sys
 
 def main(args=None):
     # 1: Test if we're in a virtual environment at all.
-    base_prefix = getattr(sys, "base_prefix", None) or getattr(sys, "real_prefix", None) or sys.prefix
+    base_prefix = getattr(sys, 'base_prefix', None) or getattr(sys, 'real_prefix', None) or sys.prefix
     is_in_venv = sys.prefix != base_prefix
     if not is_in_venv:
         print(
@@ -40,7 +40,7 @@ def main(args=None):
         return 1
     # 3: Test if proper requirements have been installed
     try:
-        six = importlib.import_module("six")
+        six = importlib.import_module('six')
         if six.__version__ != '1.0.0':
             print(
                 "[test_ament_virtualenv] "
