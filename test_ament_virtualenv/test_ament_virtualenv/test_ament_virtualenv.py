@@ -23,7 +23,8 @@ import sys
 
 def main(args=None):
     # 1: Test if we're in a virtual environment at all.
-    is_in_venv = hasattr(sys, 'real_prefix')
+    base_prefix = getattr(sys, 'base_prefix', None) or getattr(sys, 'real_prefix', None) or sys.prefix
+    is_in_venv = sys.prefix != base_prefix
     if not is_in_venv:
         print(
             "[test_ament_virtualenv] "
@@ -31,7 +32,7 @@ def main(args=None):
         )
         return 1
     # 2: Test the Python version.
-    if sys.version_info.major != 2:
+    if sys.version_info.major != 3:
         print(
             "[test_ament_virtualenv] "
             "FAILURE: Wrong Python version."
@@ -39,19 +40,19 @@ def main(args=None):
         return 1
     # 3: Test if proper requirements have been installed
     try:
-        requests = importlib.import_module("requests")
-        if requests.__version__ != '2.20.1':
+        six = importlib.import_module('six')
+        if six.__version__ != '1.0.0':
             print(
                 "[test_ament_virtualenv] "
                 "FAILURE: Requirements not provided correctly "
-                "(expected 'requests==2.20.1', found "+requests.__version__+")"
+                "(expected 'six==1.0.0', found "+six.__version__+")"
             )
             return 1
     except:
         print(
             "[test_ament_virtualenv] "
             "FAILURE: Requirements not provided "
-            "(expected 'requests' to be present but could not find it)"
+            "(expected 'six' to be present but could not find it)"
         )
         return 1
     print("[test_ament_virtualenv] SUCCESS: All checks passed.")
