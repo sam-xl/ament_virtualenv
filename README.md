@@ -18,6 +18,8 @@ Both will be included in the release.
 
 This library is GPL licensed due to the inclusion of dh_virtualenv.
 
+> [!WARNING]
+> `ament_cmake_virtualenv` currently doesn't work with Jazzy and needs further work
 
 ## Exporting python requirements
 
@@ -41,26 +43,16 @@ Add an export to `package.xml`:
 If your package uses `ament_python` as build tool, add the following to your `setup.py` file:
 
 ```python
-import setuptools.command.install
-import ament_virtualenv.install
-
-class InstallCommand(setuptools.command.install.install):
-    def run(self):
-        super().run()
-        ament_virtualenv.install.install_venv(
-            install_base=self.install_base,
-            package_name=package_name,
-            python_version='2'
-        )
-        # instead of self.install_base we may also use:
-        # self.config_vars['platbase'] or self.config_vars['base']
-        # Exchange the python_version with '3' if your package uses Python3.
-        return
+import ament_virtualenv
 
 setup(
     cmdclass={
-        'install': InstallCommand
+        'install': ament_virtualenv.AmentVirtualenvInstall,
+        'develop': ament_virtualenv.AmentVirtualenvDevelop,
     },
+    ...,
+    install_requires=['ament_virtualenv','setuptools'],
+    ...
 ```
 
 
@@ -89,11 +81,13 @@ Finally, add an build dependency on ament_virtualenv to your `package.xml`.
 
 If you're using `ament_python` as build tool:
 ```xml
+<buildtool_depend>ament_virtualenv</buildtool_depend>
 <build_depend>ament_virtualenv</build_depend>
 ```
 
 If you're using `ament_cmake` as build tool:
 ```xml
+<buildtool_depend>ament_cmake_virtualenv</buildtool_depend>
 <build_depend>ament_cmake_virtualenv</build_depend>
 ```
 
