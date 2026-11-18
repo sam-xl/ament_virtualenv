@@ -17,6 +17,7 @@ wrapper scripts for Python scripts installed by the in the target package.
 Both will be included in the release.
 
 This library is GPL licensed due to the inclusion of dh_virtualenv.
+With the exception of `ament_virtualenv_pytest`, which is licensed under Apache-2.0.
 
 > [!WARNING]
 > `ament_cmake_virtualenv` currently doesn't work with Jazzy and needs further work
@@ -116,3 +117,20 @@ ament_generate_virtualenv(
     --no-binary=:all:
     -vvv
 )
+```
+
+### Running test with pytest
+The pytest plugin `ament_virtualenv_pytest` has been created to enable running pytest unittest with a virtualenv created by `ament_virtualenv` (for the specific package). 
+
+To use it specify the following in the `package.xml`
+```xml
+  <test_depend>ament_virtualenv_pytest</test_depend>
+```
+
+This plugin will auto-enable if nothing is specified and a virtual environment exists in the default location (`share/<PACKAGE_NAME>/venv`).
+It can be disabled/enabled by setting the following config in `pytest.ini`:
+
+```ini
+[pytest]
+use_ament_virtualenv=<true|false>
+```
