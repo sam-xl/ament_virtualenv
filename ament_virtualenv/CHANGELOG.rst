@@ -2,6 +2,10 @@
 Changelog for package ament_virtualenv
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add ``AmentVirtualenvDevelop`` command and explain how to use provided build commands.
+
 0.6.0 (2026-06-18)
 ------------------
 * Fix non merge install (#13)
