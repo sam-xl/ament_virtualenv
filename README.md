@@ -17,7 +17,10 @@ wrapper scripts for Python scripts installed by the in the target package.
 Both will be included in the release.
 
 This library is GPL licensed due to the inclusion of dh_virtualenv.
+With the exception of `ament_virtualenv_pytest`, which is licensed under Apache-2.0.
 
+> [!WARNING]
+> `ament_cmake_virtualenv` currently doesn't work with Jazzy and needs further work
 
 ## Exporting python requirements
 
@@ -41,26 +44,16 @@ Add an export to `package.xml`:
 If your package uses `ament_python` as build tool, add the following to your `setup.py` file:
 
 ```python
-import setuptools.command.install
-import ament_virtualenv.install
-
-class InstallCommand(setuptools.command.install.install):
-    def run(self):
-        super().run()
-        ament_virtualenv.install.install_venv(
-            install_base=self.install_base,
-            package_name=package_name,
-            python_version='2'
-        )
-        # instead of self.install_base we may also use:
-        # self.config_vars['platbase'] or self.config_vars['base']
-        # Exchange the python_version with '3' if your package uses Python3.
-        return
+import ament_virtualenv
 
 setup(
     cmdclass={
-        'install': InstallCommand
+        'install': ament_virtualenv.AmentVirtualenvInstall,
+        'develop': ament_virtualenv.AmentVirtualenvDevelop,
     },
+    ...,
+    install_requires=['ament_virtualenv','setuptools'],
+    ...
 ```
 
 
@@ -89,11 +82,13 @@ Finally, add an build dependency on ament_virtualenv to your `package.xml`.
 
 If you're using `ament_python` as build tool:
 ```xml
+<buildtool_depend>ament_virtualenv</buildtool_depend>
 <build_depend>ament_virtualenv</build_depend>
 ```
 
 If you're using `ament_cmake` as build tool:
 ```xml
+<buildtool_depend>ament_cmake_virtualenv</buildtool_depend>
 <build_depend>ament_cmake_virtualenv</build_depend>
 ```
 
@@ -122,3 +117,45 @@ ament_generate_virtualenv(
     --no-binary=:all:
     -vvv
 )
+```
+
+### Running test with pytest
+The pytest plugin `ament_virtualenv_pytest` has been created to enable running pytest unittest with a virtualenv created by `ament_virtualenv` (for the specific package). 
+
+To use it specify the following in the `package.xml`
+```xml
+  <test_depend>ament_virtualenv_pytest</test_depend>
+```
+
+This plugin will auto-enable if nothing is specified and a virtual environment exists in the default location (`share/<PACKAGE_NAME>/venv`).
+It can be disabled/enabled by setting the following config in `pytest.ini`:
+
+```ini
+[pytest]
+use_ament_virtualenv=<true|false>
+```
+
+> [!CAUTION]
+> While using `ament_virtualenv_pytest` it is important that you **DO NOT** import packages from the `venv` (specified (in)directly by your `requirements.txt`) in your `conftest.py`.
+>
+> Performing these imports anyway, causes the non-venv version to be used as the result of `pytest` plugin[^plugin] [resolution order](https://docs.pytest.org/en/stable/how-to/writing_plugins.html#plugin-discovery-order-at-tool-startup).
+>
+> Three possible mitigations are recommended:
+> - Move the fixtures which require the venv-dependency to a test file, this makes them less accessible.
+> - If the venv-dependency is only by one fixture, the import can be moved into that fixture or its own fixture:
+>   ```python
+>   @pytest.fixture
+>   def my_fixture_using_lib():
+>       import lib
+>       ...  # The rest of your fixture.
+>   ```
+> - Write a `pytest` hook in your `conftest.py` to load it at the end of initialization:
+>   ```python
+>   @pytest.hookimpl(trylast=True)
+>   def pytest_configure():
+>       # Define `lib` as global to make it accessible for all fixtures.
+>       global lib
+>       import lib
+>   ```
+
+[^plugin]: `conftest.py` is a considered plugin, according to `pytest`
